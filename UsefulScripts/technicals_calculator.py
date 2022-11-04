@@ -1,16 +1,39 @@
 import pandas as pd
 import ta
 
-data = pd.read_csv("../TRADINGVIEW_DATA/data3.csv")
-data = data.loc[::-1].reset_index(drop=True)
+data = pd.read_csv("../ETH_DATA/eth_minute_price.csv")
 print(data.describe())
 
 macd_ta = ta.trend.MACD(data["close"])
-print(macd_ta.macd(), macd_ta.macd_signal(), macd_ta.macd_diff())
+# print(macd_ta.macd(), macd_ta.macd_signal(), macd_ta.macd_diff())
+data['macd'] = macd_ta.macd()
+data['macd_signal'] = macd_ta.macd_signal()
+data['macd_diff'] = macd_ta.macd_diff()
 
-rsi_ta = ta.momentum.RSIIndicator(data["close"])
-print(rsi_ta.rsi())
+rsi_ta = ta.momentum.RSIIndicator(close=data["close"])
+data['rsi'] = rsi_ta.rsi()
 
+stoch_osc_ta = ta.momentum.StochasticOscillator(high=data["high"], low=data["low"], close=data["close"])
+#print(stoch_osc_ta.stoch().tail(20))
+#print(stoch_osc_ta.stoch_signal().tail(20))
+data['stoch_k'] = stoch_osc_ta.stoch()
+data['stoch_k_signal'] = stoch_osc_ta.stoch_signal()
+
+williams_r_ta = ta.momentum.WilliamsRIndicator(high=data["high"], low=data["low"], close=data["close"])
+#print(williams_r_ta.williams_r().tail(20))
+data['williams_r'] = williams_r_ta.williams_r()
+
+stoch_rsi_ta = ta.momentum.StochRSIIndicator(close=data["close"])
+#print(stoch_rsi_ta.stochrsi().tail(20))
+data['stoch_rsi'] = stoch_rsi_ta.stochrsi()
+
+try:
+    open('../ETH_DATA/eth_minute_price_techs.csv', 'x')
+except:
+    pass
+file = open('../ETH_DATA/eth_minute_price_techs.csv', 'w')
+
+data.to_csv(file)
 '''
 def MACD(data, fast, slow, signal):    
     data2 = data["close"].copy()
@@ -51,4 +74,3 @@ def rsi(data: pd.DataFrame, period: int = 14) -> pd.Series:
     RS = _gain / _loss
     return pd.Series(100 - (100 / (1 + RS)), name="RSI")
 '''
-
