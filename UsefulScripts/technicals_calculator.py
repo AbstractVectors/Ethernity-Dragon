@@ -1,39 +1,60 @@
 import pandas as pd
+import numpy as np
 import ta
 
-data = pd.read_csv("../ETH_DATA/eth_minute_price.csv")
-print(data.describe())
+
+time_interval = input("Input the time interval: ")
+time_unit = input("Input the time unit (minute or hour): ")
+PATH = "../ETH_DATA/eth_{}_{}_price.csv"
+
+data = pd.read_csv(PATH.format(time_interval, time_unit))
+
+def calc_tech_perc(tech_data):
+    tech_data_sorted = tech_data.sort_values(ascending=True)
+    tech_data_sorted = tech_data_sorted.dropna()
+    tech_data_length = len(tech_data_sorted)
+    tech_perc = []
+    for tech in tech_data:
+        if (tech is None):
+            tech_perc.append(None)
+        else:
+            tech_perc.append(tech_data_sorted.searchsorted(tech, side='left') / tech_data_length)
+    return tech_perc
 
 macd_ta = ta.trend.MACD(data["close"])
-# print(macd_ta.macd(), macd_ta.macd_signal(), macd_ta.macd_diff())
 data['macd'] = macd_ta.macd()
 data['macd_signal'] = macd_ta.macd_signal()
 data['macd_diff'] = macd_ta.macd_diff()
 
 rsi_ta = ta.momentum.RSIIndicator(close=data["close"])
-data['rsi'] = rsi_ta.rsi()
+rsi = rsi_ta.rsi()
+data['rsi'] = rsi
+data['rsi_perc'] = calc_tech_perc(rsi)
 
 stoch_osc_ta = ta.momentum.StochasticOscillator(high=data["high"], low=data["low"], close=data["close"])
-#print(stoch_osc_ta.stoch().tail(20))
-#print(stoch_osc_ta.stoch_signal().tail(20))
 data['stoch_k'] = stoch_osc_ta.stoch()
-data['stoch_k_signal'] = stoch_osc_ta.stoch_signal()
+stoch_k_signal = stoch_osc_ta.stoch_signal()
+data['stoch_k_signal'] = stoch_k_signal
+data['stoch_k_signal_perc'] = calc_tech_perc(stoch_k_signal)
 
 williams_r_ta = ta.momentum.WilliamsRIndicator(high=data["high"], low=data["low"], close=data["close"])
-#print(williams_r_ta.williams_r().tail(20))
 data['williams_r'] = williams_r_ta.williams_r()
+data['williams_r_perc'] = calc_tech_perc(data['williams_r'])
 
 stoch_rsi_ta = ta.momentum.StochRSIIndicator(close=data["close"])
-#print(stoch_rsi_ta.stochrsi().tail(20))
 data['stoch_rsi'] = stoch_rsi_ta.stochrsi()
+data['stoch_rsi'] = calc_tech_perc(data['stoch_rsi'])
 
+file_path = '../ETH_DATA/eth_{}_{}_price_techs.csv'.format(time_interval, time_unit)
 try:
-    open('../ETH_DATA/eth_minute_price_techs.csv', 'x')
+    open(file_path, 'x')
 except:
     pass
-file = open('../ETH_DATA/eth_minute_price_techs.csv', 'w')
+file = open(file_path, 'w')
 
-data.to_csv(file)
+data.to_csv(file, index=False)
+
+
 '''
 def MACD(data, fast, slow, signal):    
     data2 = data["close"].copy()
