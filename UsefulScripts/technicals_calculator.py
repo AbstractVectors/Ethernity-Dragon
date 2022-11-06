@@ -45,6 +45,17 @@ stoch_rsi_ta = ta.momentum.StochRSIIndicator(close=data["close"])
 data['stoch_rsi'] = stoch_rsi_ta.stochrsi()
 data['stoch_rsi'] = calc_tech_perc(data['stoch_rsi'])
 
+sma_50_ta = ta.trend.SMAIndicator(close=data["close"], window=50)
+data['50_sma'] = sma_50_ta.sma_indicator()
+sma_100_ta = ta.trend.SMAIndicator(close=data["close"], window=100)
+data['100_sma'] = sma_100_ta.sma_indicator()
+
+ema_50_ta = ta.trend.EMAIndicator(close=data["close"], window=50)
+data['50_ema'] = ema_50_ta.ema_indicator()
+ema_100_ta = ta.trend.EMAIndicator(close=data["close"], window=100)
+data['100_ema'] = ema_100_ta.ema_indicator()
+
+
 file_path = '../ETH_DATA/eth_{}_{}_price_techs.csv'.format(time_interval, time_unit)
 try:
     open(file_path, 'x')
